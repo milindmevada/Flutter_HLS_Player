@@ -18,12 +18,15 @@ class VideoListingPage extends StatelessWidget {
         builder: (context) {
           final viewModel = Provider.of<VideoListingViewModel>(context);
           return Scaffold(
-            appBar: AppBar(),
+            appBar: AppBar(
+              title: Text('HSL Video Player'),
+            ),
             body: SafeArea(
               child: Observer(
                 builder: (context) => viewModel.qualityFetching
                     ? Center(child: CircularProgressIndicator())
                     : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           AspectRatio(
                             aspectRatio: 16 / 9,
@@ -34,6 +37,13 @@ class VideoListingPage extends StatelessWidget {
                                       filePath: viewModel.downloadedFile.path,
                                     )
                                   : Center(child: Text("No Video Available")),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text(
+                              "Select Quality to Download",
+                              style: Theme.of(context).textTheme.headline6,
                             ),
                           ),
                           Expanded(
