@@ -85,45 +85,29 @@ abstract class _VideoListingViewModel with Store {
       return;
     }
     currentDownloadingIndex = index;
-    await downloadAudioSegments();
-    final segmentsResponse = await dio.get(
-      masterPlaylist.mediaPlaylistUrls[index].toString(),
+    await downloadAllSegments(
+      url: masterPlaylist.mediaPlaylistUrls[index].toString(),
+      segment: 'segment',
     );
-    final segmentsData = await HlsPlaylistParser.create().parseString(
-      playlistUri,
-      segmentsResponse.data as String,
+    await downloadAllSegments(
+      url: masterPlaylist.audios.first.url.toString(),
+      segment: 'audio_segment',
     );
-    if (segmentsData is HlsMediaPlaylist) {
-      for (final element in segmentsData.segments) {
-        final uri = Uri.parse(element.url);
-        final pathSegment = List.from(uri.pathSegments);
-        pathSegment.removeWhere((element) => element.contains(".."));
-        final url =
-            "https://bitdash-a.akamaihd.net/content/MI201109210084_1/${pathSegment.join("/")}";
-        final docDirectory = await getApplicationDocumentsDirectory();
-        final fileName = pathSegment.last;
-        final pathComponents = [docDirectory.path, 'segments', fileName];
-        final localFilePath = p.joinAll(
-          pathComponents.toList().cast<String>(),
-        );
-        try {
-          await dio.download(url, localFilePath);
-        } catch (_) {}
-      }
-    }
-    await createSegmentsConcatFile();
+    await createSegmentsConcatFile(
+      segment: 'segment',
+      fileName: 'all.txt',
+    );
+    await createSegmentsConcatFile(
+      segment: 'audio_segment',
+      fileName: 'allAudio.txt',
+    );
     await createVideoFile();
     currentDownloadingIndex = -1;
   }
 
   @action
-  Future<void> downloadAudioSegments() async {
-    if (masterPlaylist == null) {
-      return;
-    }
-    final segmentsResponse = await dio.get(
-      masterPlaylist.audios.first.url.toString(),
-    );
+  Future<void> downloadAllSegments({String url, String segment}) async {
+    final segmentsResponse = await dio.get(url);
     final segmentsData = await HlsPlaylistParser.create().parseString(
       playlistUri,
       segmentsResponse.data as String,
@@ -137,7 +121,7 @@ abstract class _VideoListingViewModel with Store {
             "https://bitdash-a.akamaihd.net/content/MI201109210084_1/${pathSegment.join("/")}";
         final docDirectory = await getApplicationDocumentsDirectory();
         final fileName = pathSegment.last;
-        final pathComponents = [docDirectory.path, 'audio_segments', fileName];
+        final pathComponents = [docDirectory.path, segment, fileName];
         final localFilePath = p.joinAll(
           pathComponents.toList().cast<String>(),
         );
@@ -148,6 +132,7 @@ abstract class _VideoListingViewModel with Store {
     }
   }
 
+  @action
   Future<void> createVideoFile() async {
     final directory = await getApplicationDocumentsDirectory();
     final allFilePath = p.joinAll([directory.path, "all.txt"]);
@@ -168,42 +153,25 @@ abstract class _VideoListingViewModel with Store {
     downloadedFile = File(finalVideoPath);
   }
 
-  Future<void> createSegmentsConcatFile() async {
-    await createAudioSegmentsConcatFile();
+  Future<void> createSegmentsConcatFile({
+    String segment,
+    String fileName,
+  }) async {
     final directory = await getApplicationDocumentsDirectory();
     final List<String> pathList = [];
-    //Video Segments
-    final path = p.joinAll([directory.path, 'segments']);
+
+    final path = p.joinAll([directory.path, segment]);
     if (!Directory(path).existsSync()) {
       Directory(path).create(recursive: true);
     }
     final list = Directory(path).listSync();
     final totalSegments = list.length;
     List.generate(totalSegments, (index) {
-      pathList.add("file '${directory.path}/segments/segment_$index.ts'");
+      pathList.add("file '${directory.path}/$segment/segment_$index.ts'");
     });
 
     final allTsString = pathList.join("\n").toString();
-    final File file = File('${directory.path}/all.txt');
-    await file.writeAsString(allTsString);
-  }
-
-  Future<void> createAudioSegmentsConcatFile() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final List<String> pathList = [];
-    //Audio Segments
-    final path = p.joinAll([directory.path, 'audio_segments']);
-    if (!Directory(path).existsSync()) {
-      Directory(path).create(recursive: true);
-    }
-    final list = Directory(path).listSync();
-    final totalSegments = list.length;
-    List.generate(totalSegments, (index) {
-      pathList.add("file '${directory.path}/audio_segments/segment_$index.ts'");
-    });
-
-    final allTsString = pathList.join("\n").toString();
-    final File file = File('${directory.path}/allAudio.txt');
+    final File file = File('${directory.path}/$fileName');
     await file.writeAsString(allTsString);
   }
 

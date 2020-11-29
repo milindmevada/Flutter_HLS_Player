@@ -130,13 +130,21 @@ mixin _$VideoListingViewModel on _VideoListingViewModel, Store {
         .run(() => super.downloadSegments(index));
   }
 
-  final _$downloadAudioSegmentsAsyncAction =
-      AsyncAction('_VideoListingViewModel.downloadAudioSegments');
+  final _$downloadAllSegmentsAsyncAction =
+      AsyncAction('_VideoListingViewModel.downloadAllSegments');
 
   @override
-  Future<void> downloadAudioSegments() {
-    return _$downloadAudioSegmentsAsyncAction
-        .run(() => super.downloadAudioSegments());
+  Future<void> downloadAllSegments({String url, String segment}) {
+    return _$downloadAllSegmentsAsyncAction
+        .run(() => super.downloadAllSegments(url: url, segment: segment));
+  }
+
+  final _$createVideoFileAsyncAction =
+      AsyncAction('_VideoListingViewModel.createVideoFile');
+
+  @override
+  Future<void> createVideoFile() {
+    return _$createVideoFileAsyncAction.run(() => super.createVideoFile());
   }
 
   final _$fetchDownloadedVideoAsyncAction =
