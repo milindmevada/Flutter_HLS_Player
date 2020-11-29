@@ -1,3 +1,4 @@
+import 'package:encrypted_video_player/pages/video_listing_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -13,11 +14,9 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello'),
-        ),
-      ),
+      routes: {
+        VideoListingPage.route: (context) => VideoListingPage(),
+      },
     );
   }
 }
