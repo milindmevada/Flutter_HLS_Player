@@ -165,13 +165,13 @@ abstract class _VideoListingViewModel with Store {
     await _flutterFFmpeg.execute(
       '-i $audioOutPutFilePath -i $outPutFilePath $finalVideoPath',
     );
-    downloadedFile = File(outPutFilePath);
+    downloadedFile = File(finalVideoPath);
   }
 
   Future<void> createSegmentsConcatFile() async {
+    await createAudioSegmentsConcatFile();
     final directory = await getApplicationDocumentsDirectory();
     final List<String> pathList = [];
-    final List<String> audioPathList = [];
     //Video Segments
     final path = p.joinAll([directory.path, 'segments']);
     if (!Directory(path).existsSync()) {
@@ -188,13 +188,32 @@ abstract class _VideoListingViewModel with Store {
     await file.writeAsString(allTsString);
   }
 
+  Future<void> createAudioSegmentsConcatFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final List<String> pathList = [];
+    //Audio Segments
+    final path = p.joinAll([directory.path, 'audio_segments']);
+    if (!Directory(path).existsSync()) {
+      Directory(path).create(recursive: true);
+    }
+    final list = Directory(path).listSync();
+    final totalSegments = list.length;
+    List.generate(totalSegments, (index) {
+      pathList.add("file '${directory.path}/audio_segments/segment_$index.ts'");
+    });
+
+    final allTsString = pathList.join("\n").toString();
+    final File file = File('${directory.path}/allAudio.txt');
+    await file.writeAsString(allTsString);
+  }
+
   @action
   Future<void> fetchDownloadedVideo() async {
     final directory = await getApplicationDocumentsDirectory();
     directory.listSync().forEach((element) {
       print(element.path);
     });
-    final outPutFilePath = p.joinAll([directory.path, "output.mp4"]);
+    final outPutFilePath = p.joinAll([directory.path, "final.mp4"]);
     if (File(outPutFilePath).existsSync()) {
       downloadedFile = File(outPutFilePath);
     }
