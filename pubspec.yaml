@@ -17,6 +17,7 @@ dependencies:
   flutter_hls_parser: ^1.0.0
   flutter_ffmpeg: ^0.3.0
   flick_video_player: ^0.1.1
+  encrypt: ^4.1.0
 
 dev_dependencies:
   flutter_test:

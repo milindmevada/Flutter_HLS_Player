@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:encrypted_video_player/app_constants.dart';
+import 'package:encrypted_video_player/service/encryption_helper.dart';
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 import 'package:flutter_hls_parser/flutter_hls_parser.dart';
 import 'package:mobx/mobx.dart';
@@ -17,6 +18,7 @@ class VideoListingViewModel = _VideoListingViewModel
 
 abstract class _VideoListingViewModel with Store {
   final dio = Dio();
+  final encryptionHelper = EncryptionHelper();
   Uri playlistUri = Uri.parse(AppConstants.assetUrl);
 
   _VideoListingViewModel() {
@@ -143,6 +145,8 @@ abstract class _VideoListingViewModel with Store {
       '-i $audioOutPutFilePath -i $outPutFilePath $finalVideoPath',
     );
     downloadedFile = File(finalVideoPath);
+    await encryptionHelper.encryptFile();
+    await File(finalVideoPath).delete();
     await File(outPutFilePath).delete();
     await File(audioOutPutFilePath).delete();
     await File(allFilePath).delete();
@@ -183,9 +187,16 @@ abstract class _VideoListingViewModel with Store {
     directory.listSync().forEach((element) {
       print(element.path);
     });
-    final outPutFilePath = p.joinAll([directory.path, "final.mp4"]);
+    final outPutFilePath = p.joinAll([directory.path, "finalenc.aes"]);
     if (File(outPutFilePath).existsSync()) {
-      downloadedFile = File(outPutFilePath);
+      await encryptionHelper.decryptFile();
+      final decryptedFile = p.joinAll([directory.path, "final.mp4"]);
+      if (File(decryptedFile).existsSync()) {
+        downloadedFile = File(decryptedFile);
+        Future.delayed(Duration(seconds: 2)).then(
+          (value) => File(decryptedFile).delete(),
+        );
+      }
     }
   }
 }
