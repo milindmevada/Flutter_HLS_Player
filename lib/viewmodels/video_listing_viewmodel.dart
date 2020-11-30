@@ -53,14 +53,6 @@ abstract class _VideoListingViewModel with Store {
     return ObservableList.of(qualities);
   }
 
-  Future<String> getVideoPath() async {
-    final docDirectory = await getApplicationDocumentsDirectory();
-    final fileName = 'segment_0.ts';
-    final pathComponents = [docDirectory.path, fileName];
-    final localFilePath = p.joinAll(pathComponents);
-    return localFilePath;
-  }
-
   @action
   Future<void> getQualities() async {
     try {
@@ -151,6 +143,16 @@ abstract class _VideoListingViewModel with Store {
       '-i $audioOutPutFilePath -i $outPutFilePath $finalVideoPath',
     );
     downloadedFile = File(finalVideoPath);
+    await File(outPutFilePath).delete();
+    await File(audioOutPutFilePath).delete();
+    await File(allFilePath).delete();
+    await File(audioAllFilePath).delete();
+    await File(p.joinAll([directory.path, "audio_segment"])).delete(
+      recursive: true,
+    );
+    await File(p.joinAll([directory.path, "segment"])).delete(
+      recursive: true,
+    );
   }
 
   Future<void> createSegmentsConcatFile({
