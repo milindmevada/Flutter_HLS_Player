@@ -146,7 +146,6 @@ abstract class _VideoListingViewModel with Store {
     );
     downloadedFile = File(finalVideoPath);
     await encryptionHelper.encryptFile();
-    await File(finalVideoPath).delete();
     await File(outPutFilePath).delete();
     await File(audioOutPutFilePath).delete();
     await File(allFilePath).delete();
@@ -156,6 +155,9 @@ abstract class _VideoListingViewModel with Store {
     );
     await File(p.joinAll([directory.path, "segment"])).delete(
       recursive: true,
+    );
+    Future.delayed(Duration(seconds: 2)).then(
+      (value) => File(finalVideoPath).delete(),
     );
   }
 
